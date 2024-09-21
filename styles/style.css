@@ -1,0 +1,54 @@
+/* styles/style.css */
+.button-container {
+  margin-bottom: 20px;
+}
+
+.year-button {
+  margin-right: 5px;
+  padding: 5px 10px;
+  background-color: lightblue;
+  border: none;
+  cursor: pointer;
+}
+
+.year-button:hover {
+  background-color: deepskyblue;
+}
+
+.year-button.active {
+  background-color: darkblue;
+  color: white;
+}
+
+svg {
+  font-family: 'Arial', sans-serif;
+}
+
+.x-axis text {
+  font-size: 12px;
+  fill: #333;
+}
+
+.x-axis path,
+.x-axis line {
+  stroke: #ccc;
+}
+
+.y-axis path,
+.y-axis line {
+  stroke: #ccc;
+}
+
+.y-axis text {
+  font-size: 12px;
+  fill: #333;
+}
+
+rect {
+  fill-opacity: 0.7;
+}
+
+rect:hover {
+  fill-opacity: 1;
+  transition: fill-opacity 0.3s;
+}
