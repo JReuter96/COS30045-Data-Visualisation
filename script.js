@@ -1,7 +1,7 @@
 // script.js
 
 // Set the margins and dimensions
-const margin = { top: 40, right: 40, bottom: 60, left: 60 };
+const margin = { top: 40, right: 40, bottom: 100, left: 60 };
 const width = 900 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 
@@ -14,7 +14,7 @@ const svg = d3.select("body")
   .attr("transform", `translate(${margin.left},${margin.top})`);
 
 // Load the CSV file
-d3.csv("data/datacleaned.csv").then(function(data) {
+d3.csv("data/datacleaned.csv").then(function (data) {
 
   // Parse numerical values
   data.forEach(d => {
@@ -40,7 +40,7 @@ d3.csv("data/datacleaned.csv").then(function(data) {
     .range(d3.schemeCategory10);
 
   // Append the x-axis
-  const xAxis = svg.append("g")
+  svg.append("g")
     .attr("class", "x-axis")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x))
@@ -52,19 +52,54 @@ d3.csv("data/datacleaned.csv").then(function(data) {
   const yAxis = svg.append("g")
     .attr("class", "y-axis");
 
+  // Add currentYear variable to track the selected year
+  let currentYear = 2000;
+  let sortDirection = "asc"; // Track sorting direction
+
   // Update the chart based on the selected year
   function update(year) {
+    currentYear = year;
+
     // Filter the data for the selected year
     const filteredData = data.filter(d => d.Year == year);
 
+    // Sort the filtered data based on current sorting preference
+    if (sortDirection === "asc") {
+      filteredData.sort((a, b) => d3.ascending(a.InjuriesPerMillion, b.InjuriesPerMillion));
+    } else {
+      filteredData.sort((a, b) => d3.descending(a.InjuriesPerMillion, b.InjuriesPerMillion));
+    }
+
+    // Update the x-axis domain based on the sorted filtered data
+    x.domain(filteredData.map(d => d.Country));
+
     // Update the y-axis domain based on the filtered data
     y.domain([0, d3.max(filteredData, d => d.InjuriesPerMillion)]).nice();
-
     yAxis.transition().duration(1000).call(d3.axisLeft(y));
 
+    // Update the x-axis
+    svg.select(".x-axis")
+      .transition()
+      .duration(1000)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end");
+
     // Bind the filtered data to the bars
-    const bars = svg.selectAll("rect")
-      .data(filteredData);
+    const bars = svg.selectAll("rect").data(filteredData);
+
+    // Create Tooltip Div (if it doesn't already exist)
+    if (d3.select("#tooltip").empty()) {
+      d3.select("body").append("div")
+        .attr("id", "tooltip")
+        .style("position", "absolute")
+        .style("opacity", 0)
+        .style("background-color", "lightgrey")
+        .style("padding", "5px")
+        .style("border-radius", "3px")
+        .style("pointer-events", "none");
+    }
 
     // Enter new bars
     bars.enter().append("rect")
@@ -73,8 +108,27 @@ d3.csv("data/datacleaned.csv").then(function(data) {
       .attr("y", height) // Start the bars from the bottom
       .attr("height", 0) // Start with height 0 for animation
       .attr("fill", d => color(year))
+      // mouseover event trigger
+      .on("mouseover", function (event, d) {
+        // Show the tooltip
+        d3.select("#tooltip").transition().duration(200).style("opacity", 1);
+        d3.select("#tooltip").html(`${d.Country}: ${d.InjuriesPerMillion} Injuries Per Million`)
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 20) + "px");
+      })
+      .on("mousemove", function (event) {
+        // Tooltip follows mouse
+        d3.select("#tooltip").style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 20) + "px");
+      })
+      .on("mouseout", function () {
+        // Hide the tooltip
+        d3.select("#tooltip").transition().duration(200).style("opacity", 0);
+      })
       .merge(bars) // Update existing bars
       .transition().duration(1000)
+      .attr("x", d => x(d.Country))
+      .attr("width", x.bandwidth())
       .attr("y", d => y(d.InjuriesPerMillion)) // Set final position
       .attr("height", d => height - y(d.InjuriesPerMillion)); // Set final height
 
@@ -86,12 +140,13 @@ d3.csv("data/datacleaned.csv").then(function(data) {
   const years = d3.range(2000, 2024);
   const buttonContainer = d3.select("#buttonContainer");
 
+  // Creates buttons for each year. When a button is clicked, it updates the bar chart to display data for the selected year 
   years.forEach(year => {
     buttonContainer.append("button")
       .attr("class", "year-button")
       .attr("id", `year-${year}`)
       .text(year)
-      .on("click", function() {
+      .on("click", function () {
         // Update the chart with the selected year data
         update(year);
 
@@ -101,8 +156,27 @@ d3.csv("data/datacleaned.csv").then(function(data) {
       });
   });
 
+  // --SORTING CODE-- // 
+
+  // Sorting Ascending
+  d3.select("#sortAsc").on("click", function () {
+    sortDirection = "asc"; // Update sorting direction
+    d3.selectAll(".year-button").classed("active", false);
+    d3.select(this).classed("active", true);
+    update(currentYear); // This will handle the sorting within the update function
+  });
+
+  // Sorting Descending
+  d3.select("#sortDesc").on("click", function () {
+    sortDirection = "desc"; // Update sorting direction
+    d3.selectAll(".year-button").classed("active", false);
+    d3.select(this).classed("active", true);
+    update(currentYear); // This will handle the sorting within the update function
+  });
+
   // Initialize the chart with year 2000 data
   update(2000);
   d3.select("#year-2000").classed("active", true);
 
 });
+
