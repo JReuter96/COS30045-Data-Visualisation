@@ -107,7 +107,7 @@ d3.csv("data/datacleaned.csv").then(function (data) {
       .attr("width", x.bandwidth())
       .attr("y", height) // Start the bars from the bottom
       .attr("height", 0) // Start with height 0 for animation
-      .attr("fill", d => color(year))
+      .attr("fill", "steelblue") // Set  fixed colour for all bars
       // mouseover event trigger
       .on("mouseover", function (event, d) {
         // Show the tooltip
@@ -131,6 +131,7 @@ d3.csv("data/datacleaned.csv").then(function (data) {
       .attr("width", x.bandwidth())
       .attr("y", d => y(d.InjuriesPerMillion)) // Set final position
       .attr("height", d => height - y(d.InjuriesPerMillion)); // Set final height
+
 
     // Exit and remove old bars
     bars.exit().remove();
