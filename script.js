@@ -1,12 +1,14 @@
 // script.js
 
+	// -- Bar Chart Code -- //
+	
 // Set the margins and dimensions
 const margin = { top: 40, right: 40, bottom: 100, left: 60 };
 const width = 900 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 
 // Create the SVG container
-const svg = d3.select("body")
+const svg = d3.select("#bar")
   .append("svg")
   .attr("width", width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
@@ -142,14 +144,15 @@ d3.csv("data/datacleaned.csv").then(function (data) {
   const buttonContainer = d3.select("#buttonContainer");
 
   // Creates buttons for each year. When a button is clicked, it updates the bar chart to display data for the selected year 
-  years.forEach(year => {
-    buttonContainer.append("button")
-      .attr("class", "year-button")
-      .attr("id", `year-${year}`)
-      .text(year)
-      .on("click", function () {
-        // Update the chart with the selected year data
-        update(year);
+	 years.forEach(year => {
+	  buttonContainer.append("button")
+		.attr("class", "year-button")
+		.attr("id", `year-${year}`)
+		.text(year)
+		.on("click", function () {
+		  // Update both the chart and the heatmap with the selected year data
+		  update(year);
+		  updateHeatmap(year);
 
         // Remove the active class from all buttons and add it to the clicked one
         d3.selectAll(".year-button").classed("active", false);
@@ -181,3 +184,73 @@ d3.csv("data/datacleaned.csv").then(function (data) {
 
 });
 
+	// --Heatmap Code-- //
+
+// Initialize variables for heatmap
+const mapWidth = 900;
+const mapHeight = 600;
+let heatmapData = [];
+let dataMap = new Map(); // Declare globally so it is accessible in updateHeatmap
+
+// Create an SVG container for the heatmap
+const mapSvg = d3.select("#map")
+  .append("svg")
+  .attr("width", mapWidth)
+  .attr("height", mapHeight);
+
+// Define a projection and path generator for the heatmap
+const projection = d3.geoMercator()
+  .scale(120)
+  .translate([mapWidth / 2, mapHeight / 2]);
+
+const path = d3.geoPath().projection(projection);
+
+// Create a color scale for the heatmap
+const colorScale = d3.scaleSequential(d3.interpolateReds);
+
+// Define the function to update the heatmap
+function updateHeatmap(year) {
+  // Update color domain based on the selected year
+  colorScale.domain([0, d3.max(heatmapData, d => d.Year == year ? d.InjuriesPerMillion : 0)]);
+
+  // Update fill color based on the selected year's data
+  mapSvg.selectAll("path")
+    .transition().duration(1000)
+    .style("fill", d => {
+      const countryData = dataMap.get(d.properties.name);
+      if (countryData) {
+        const yearData = countryData.find(item => item.year == year);
+        return yearData ? colorScale(yearData.injuries) : "#ccc";
+      }
+      return "#ccc";
+    });
+}
+
+// Load GeoJSON data and CSV data for the heatmap
+Promise.all([
+  d3.json("data/world.geojson"),
+  d3.csv("data/datacleaned.csv")
+]).then(([geoData, trafficData]) => {
+  // Store the traffic data for use in updateHeatmap
+  heatmapData = trafficData;
+
+  // Process CSV data into a usable format
+  trafficData.forEach(d => {
+    d.InjuriesPerMillion = +d.InjuriesPerMillion; // Convert to number
+    if (!dataMap.has(d.Country)) {
+      dataMap.set(d.Country, []);
+    }
+    dataMap.get(d.Country).push({ year: d.Year, injuries: d.InjuriesPerMillion });
+  });
+
+  // Draw the map using the GeoJSON data
+  mapSvg.selectAll("path")
+    .data(geoData.features)
+    .enter().append("path")
+    .attr("class", "country")
+    .attr("d", path)
+    .style("fill", "#ccc"); // Default color for countries without data
+
+  // Initialize the heatmap with the first year's data
+  updateHeatmap(2000);
+});
