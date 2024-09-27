@@ -12,12 +12,15 @@
 
 <body>
 	<header>
-        <h1>Road Traffic Injuries per Country</h1>
-        <p>Select a year to explore the data.</p>
-    </header>
+	        <h1>Road Traffic Injuries per Country</h1>
+	        <p>Select a year to explore the data.</p>
+	</header>
 
-	<!-- Container for year buttons -->
+	<!-- Shared Container for year buttons -->
 	<div class="button-container" id="buttonContainer"></div>
+
+	<!-- Container for bar chart -->
+	<div id="bar"></div>
 
 	<!-- Sorting Buttons -->
 	<button id="sortAsc">Sort Ascending</button>
@@ -27,7 +30,8 @@
 	<!-- Div to host tooltip bars -->
 	<div id="tooltip" style="position: absolute; opacity: 0; background-color: lightgrey; padding: 5px; border-radius: 3px; pointer-events: none;"></div>
 
-
+	<!-- Div for the heatmap -->
+    	<div id="map"></div>
 
 	<!-- The chart will be appended inside this body element -->
 </body>
