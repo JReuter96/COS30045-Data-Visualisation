@@ -1,13 +1,11 @@
-// script.js
+// -- Bar Chart Code -- //
 
-	// -- Bar Chart Code -- //
-	
-// Set the margins and dimensions
+// Set the margins and dimensions for the bar chart
 const margin = { top: 40, right: 40, bottom: 100, left: 60 };
 const width = 900 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 
-// Create the SVG container
+// Create the SVG container for the bar chart
 const svg = d3.select("#bar")
   .append("svg")
   .attr("width", width + margin.left + margin.right)
@@ -15,7 +13,11 @@ const svg = d3.select("#bar")
   .append("g")
   .attr("transform", `translate(${margin.left},${margin.top})`);
 
-// Load the CSV file
+// Initialize variables for the bar chart
+let currentYear = 2000;
+let sortDirection = "asc"; // Track sorting direction
+
+// Load the CSV file for the bar chart
 d3.csv("data/datacleaned.csv").then(function (data) {
 
   // Parse numerical values
@@ -36,11 +38,6 @@ d3.csv("data/datacleaned.csv").then(function (data) {
   const y = d3.scaleLinear()
     .range([height, 0]);
 
-  // Define color scale for the bars
-  const color = d3.scaleOrdinal()
-    .domain(d3.range(2000, 2024))
-    .range(d3.schemeCategory10);
-
   // Append the x-axis
   svg.append("g")
     .attr("class", "x-axis")
@@ -54,11 +51,7 @@ d3.csv("data/datacleaned.csv").then(function (data) {
   const yAxis = svg.append("g")
     .attr("class", "y-axis");
 
-  // Add currentYear variable to track the selected year
-  let currentYear = 2000;
-  let sortDirection = "asc"; // Track sorting direction
-
-  // Update the chart based on the selected year
+  // Function to update the bar chart based on the selected year
   function update(year) {
     currentYear = year;
 
@@ -109,31 +102,20 @@ d3.csv("data/datacleaned.csv").then(function (data) {
       .attr("width", x.bandwidth())
       .attr("y", height) // Start the bars from the bottom
       .attr("height", 0) // Start with height 0 for animation
-      .attr("fill", "steelblue") // Set  fixed colour for all bars
-      // mouseover event trigger
+      .attr("fill", "steelblue")
+      // Use reusable mouse events
       .on("mouseover", function (event, d) {
-        // Show the tooltip
-        d3.select("#tooltip").transition().duration(200).style("opacity", 1);
-        d3.select("#tooltip").html(`${d.Country}: ${d.InjuriesPerMillion} Injuries Per Million`)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 20) + "px");
+        const content = `${d.Country}: ${d.InjuriesPerMillion} Injuries Per Million`;
+        handleMouseOver(event, content);
       })
-      .on("mousemove", function (event) {
-        // Tooltip follows mouse
-        d3.select("#tooltip").style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 20) + "px");
-      })
-      .on("mouseout", function () {
-        // Hide the tooltip
-        d3.select("#tooltip").transition().duration(200).style("opacity", 0);
-      })
+      .on("mousemove", handleMouseMove)
+      .on("mouseout", handleMouseOut)
       .merge(bars) // Update existing bars
       .transition().duration(1000)
       .attr("x", d => x(d.Country))
       .attr("width", x.bandwidth())
       .attr("y", d => y(d.InjuriesPerMillion)) // Set final position
       .attr("height", d => height - y(d.InjuriesPerMillion)); // Set final height
-
 
     // Exit and remove old bars
     bars.exit().remove();
@@ -143,54 +125,63 @@ d3.csv("data/datacleaned.csv").then(function (data) {
   const years = d3.range(2000, 2024);
   const buttonContainer = d3.select("#buttonContainer");
 
-  // Creates buttons for each year. When a button is clicked, it updates the bar chart to display data for the selected year 
-	 years.forEach(year => {
-	  buttonContainer.append("button")
-		.attr("class", "year-button")
-		.attr("id", `year-${year}`)
-		.text(year)
-		.on("click", function () {
-		  // Update both the chart and the heatmap with the selected year data
-		  update(year);
-		  updateHeatmap(year);
+  // Creates buttons for each year. When a button is clicked, it updates both the bar chart and heatmap
+  years.forEach(year => {
+    buttonContainer.append("button")
+      .attr("class", "year-button")
+      .attr("id", `year-${year}`)
+      .text(year)
+      .on("click", function () {
+        update(year);
+        updateHeatmap(year);
 
-        // Remove the active class from all buttons and add it to the clicked one
         d3.selectAll(".year-button").classed("active", false);
         d3.select(this).classed("active", true);
       });
   });
 
-  // --SORTING CODE-- // 
-
-  // Sorting Ascending
+  // Sorting Code
   d3.select("#sortAsc").on("click", function () {
-    sortDirection = "asc"; // Update sorting direction
-    d3.selectAll(".year-button").classed("active", false);
-    d3.select(this).classed("active", true);
-    update(currentYear); // This will handle the sorting within the update function
+    sortDirection = "asc";
+    update(currentYear);
   });
 
-  // Sorting Descending
   d3.select("#sortDesc").on("click", function () {
-    sortDirection = "desc"; // Update sorting direction
-    d3.selectAll(".year-button").classed("active", false);
-    d3.select(this).classed("active", true);
-    update(currentYear); // This will handle the sorting within the update function
+    sortDirection = "desc";
+    update(currentYear);
   });
 
-  // Initialize the chart with year 2000 data
+  // Initialize the charts with year 2000 data
   update(2000);
   d3.select("#year-2000").classed("active", true);
-
 });
 
-	// --Heatmap Code-- //
+// -- Tooltip Functions -- //
+
+function handleMouseOver(event, content) {
+  d3.select("#tooltip").transition().duration(200).style("opacity", 1);
+  d3.select("#tooltip").html(content)
+    .style("left", (event.pageX + 10) + "px")
+    .style("top", (event.pageY - 20) + "px");
+}
+
+function handleMouseMove(event) {
+  d3.select("#tooltip")
+    .style("left", (event.pageX + 10) + "px")
+    .style("top", (event.pageY - 20) + "px");
+}
+
+function handleMouseOut() {
+  d3.select("#tooltip").transition().duration(200).style("opacity", 0);
+}
+
+// -- Heatmap Code -- //
 
 // Initialize variables for heatmap
 const mapWidth = 900;
 const mapHeight = 600;
 let heatmapData = [];
-let dataMap = new Map(); // Declare globally so it is accessible in updateHeatmap
+let dataMap = new Map();
 
 // Create an SVG container for the heatmap
 const mapSvg = d3.select("#map")
@@ -205,26 +196,42 @@ const projection = d3.geoMercator()
 
 const path = d3.geoPath().projection(projection);
 
-// Create a color scale for the heatmap
-const colorScale = d3.scaleSequential(d3.interpolateReds);
+// Create a color scale for the heatmap using a fixed domain
+const maxInjuries = 11325.9; // Set the fixed maximum value for the domain
+const colorScale = d3.scaleSequential(d3.interpolateReds)
+  .domain([0, maxInjuries]); // Fixed domain based on max value
 
 // Define the function to update the heatmap
 function updateHeatmap(year) {
-  // Update color domain based on the selected year
-  colorScale.domain([0, d3.max(heatmapData, d => d.Year == year ? d.InjuriesPerMillion : 0)]);
-
   // Update fill color based on the selected year's data
   mapSvg.selectAll("path")
     .transition().duration(1000)
     .style("fill", d => {
-      const countryData = dataMap.get(d.properties.name);
+      const standardizedCountryName = standardizeCountryName(d.properties.name);
+      const countryData = dataMap.get(standardizedCountryName);
       if (countryData) {
-        const yearData = countryData.find(item => item.year == year);
-        return yearData ? colorScale(yearData.injuries) : "#ccc";
+        const yearData = countryData.find(item => item.year === year);
+        return yearData ? colorScale(yearData.injuries) : "#ccc"; // Use the fixed color scale
       }
       return "#ccc";
     });
 }
+
+
+
+// Helper function to standardize country names
+function standardizeCountryName(name) {
+  const nameMappings = {
+    "United States of America": "United States",
+    "Republic of Korea": "Korea", 
+    "South Korea": "Korea", 
+    "Slovakia": "Slovak Republic", 
+    "Turkey": "Türkiye", 
+    "TÃ¼rkiye": "Türkiye", 
+  };
+  return nameMappings[name] || name; // Return mapped name or original if no match
+}
+
 
 // Load GeoJSON data and CSV data for the heatmap
 Promise.all([
@@ -237,6 +244,7 @@ Promise.all([
   // Process CSV data into a usable format
   trafficData.forEach(d => {
     d.InjuriesPerMillion = +d.InjuriesPerMillion; // Convert to number
+    d.Year = +d.Year; // Ensure Year is parsed as a number
     if (!dataMap.has(d.Country)) {
       dataMap.set(d.Country, []);
     }
@@ -249,8 +257,38 @@ Promise.all([
     .enter().append("path")
     .attr("class", "country")
     .attr("d", path)
-    .style("fill", "#ccc"); // Default color for countries without data
+    .style("fill", "#ccc") // Default color for countries without data
+    // Attach mouseover events to paths here
+    .on("mouseover", function (event, d) {
+      const standardizedCountryName = standardizeCountryName(d.properties.name);
+      const countryData = dataMap.get(standardizedCountryName);
+      const yearData = countryData ? countryData.find(item => item.year === currentYear) : null;
+      const injuries = yearData ? yearData.injuries : "No data";
+      const content = `${d.properties.name}: ${injuries} Injuries Per Million`;
+      handleMouseOver(event, content);
+    })
+    .on("mousemove", handleMouseMove)
+    .on("mouseout", handleMouseOut);
 
   // Initialize the heatmap with the first year's data
   updateHeatmap(2000);
 });
+
+// Define the function to update the heatmap
+function updateHeatmap(year) {
+  // Update color domain based on the selected year
+  colorScale.domain([0, d3.max(heatmapData, d => d.Year === year ? d.InjuriesPerMillion : 0)]);
+
+  // Update fill color based on the selected year's data
+  mapSvg.selectAll("path")
+    .transition().duration(1000)
+    .style("fill", d => {
+      const standardizedCountryName = standardizeCountryName(d.properties.name);
+      const countryData = dataMap.get(standardizedCountryName);
+      if (countryData) {
+        const yearData = countryData.find(item => item.year === year);
+        return yearData ? colorScale(yearData.injuries) : "#ccc";
+      }
+      return "#ccc";
+    });
+}

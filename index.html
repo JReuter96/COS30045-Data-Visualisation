@@ -1,38 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Bar Chart Toggle by Year</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Chart Toggle by Year</title>
 
-	<script src="https://d3js.org/d3.v7.min.js"></script>
-	<script src="script.js" defer></script>
-	<link rel="stylesheet" href="styles/style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="styles/style.css">
 </head>
 
 <body>
-	<header>
+   <header>
 	        <h1>Road Traffic Injuries per Country</h1>
 	        <p>Select a year to explore the data.</p>
 	</header>
 
+	<!-- Introduction Section -->
+	<section id="introduction">
+		<h2>Introduction</h2>
+		<p>The dataset used for this visualization is important for those parties interested in determining the level of road safety within a given country based on the annual amount of vehicle accidents that result in an injury.</p>
+	</section>
+
+	<!-- Visualization Purpose Section -->
+	<section id="visualization-purpose">
+		<h2>Visualization Purpose</h2>
+		<p>The purpose of this visualization is to enable users to draw conclusions, such as which countries have the most road accident injuries on an annual basis per million people, which continents are responsible for the greatest vehicular-related injuries, and which nations are the safest for road navigation.</p>
+	</section>
+
+	<!-- Bar Chart Explanation Section -->
+	<section id="bar-chart-explanation">
+		<h2>Bar Chart</h2>
+		<p>The bar chart provides an easy-to-read comparison of road accident injuries across different countries. By selecting a year, users can view the data for that specific period, and bars are sorted by the number of injuries per million people. The interactive nature of the bar chart allows users to hover over each bar to reveal detailed information, enabling them to quickly discern the safety levels of different countries. This clear and concise presentation ensures that users can effectively compare road safety metrics across multiple countries.</p>
+		<p>Use the buttons below to explore the bar chart by year, or sort the bars to find countries with the highest or lowest rates of road traffic injuries.</p>
+	</section>
+
 	<!-- Shared Container for year buttons -->
 	<div class="button-container" id="buttonContainer"></div>
+
+	<!-- Sorting Buttons -->
+	<div class="sorting-buttons">
+		<button id="sortAsc">Sort Ascending</button>
+		<button id="sortDesc">Sort Descending</button>
+	</div>
 
 	<!-- Container for bar chart -->
 	<div id="bar"></div>
 
-	<!-- Sorting Buttons -->
-	<button id="sortAsc">Sort Ascending</button>
-	<button id="sortDesc">Sort Descending</button>
+	<!-- Div for the heatmap explanation -->
+	<section id="heatmap-explanation">
+		<h2>Heat Map</h2>
+		<p>The heat map offers a global perspective on road accident injuries, displaying a visual intensity that correlates to the number of injuries per million people. Each country is shaded according to its rate of injuries, with darker shades representing higher rates. Users can hover over any country to reveal more detailed data in a tooltip, making it easy to identify which regions are safer or more dangerous at a glance. This visual tool allows for a more comprehensive and geographical understanding of road safety worldwide and highlights how road safety varies by country, region, and continent.</p>
+		<p>View a global distribution of road safety data below. Hover over any country to see its injury rate per million people for the selected year.</p>
+	</section>
 
+	<!-- Div for the heatmap -->
+    <div id="map"></div>
+
+	<!-- How to Use Visualizations Together Section -->
+	<section id="how-to-use">
+		<h2>Using the Bar Chart and Heat Map Together</h2>
+		<p>The bar chart and heat map complement each other by providing both detailed and geographical views of the data. While the bar chart allows for precise country-by-country comparison, the heat map reveals broader regional trends. Together, these visualizations enable users to gain a multi-faceted understanding of global road safety, helping them uncover patterns and insights that may not be apparent from either visualization alone.</p>
+	</section>
 
 	<!-- Div to host tooltip bars -->
 	<div id="tooltip" style="position: absolute; opacity: 0; background-color: lightgrey; padding: 5px; border-radius: 3px; pointer-events: none;"></div>
 
-	<!-- Div for the heatmap -->
-    	<div id="map"></div>
+    <!-- Section for data sources -->
+    <section class="data-sources">
+        <h2>Data Sources</h2>
+        <ul>
+            <li>
+                Data from the OECD: 
+                <a href="https://data-explorer.oecd.org/vis?fs%5b0%5d=Topic%2C1%7CHealth%23HEA%23%7CHealth%20status%23HEA_STA%23&pg=0&fc=Topic&bp=true&snb=16&df%5bds%5d=dsDisseminateFinalDMZ&df%5bid%5d=DSD_HEALTH_STAT%40DF_I&df%5bag%5d=OECD.ELS.HD&df%5bvs%5d=1.0&dq=.A...........&pd=2010%2C&to%5bTIME_PERIOD%5d=false&vw=tb&ly%5bcl%5d=TIME_PERIOD&ly%5brw%5d=REF_AREA" target="_blank">
+                    https://data-explorer.oecd.org/
+                </a>
+            </li>
+            <li>
+                World GeoJSON file: 
+                <a href="https://www.naturalearthdata.com/downloads/110m-cultural-vectors/" target="_blank">
+                    https://www.naturalearthdata.com/
+                </a>
+            </li>
+        </ul>
+    </section>
 
-	<!-- The chart will be appended inside this body element -->
+    <!-- Footer Section -->
+    <footer>
+        <p>
+            Justin Reuter (104741280) &amp; Chris Donaldson (10346239)
+        </p>
+        <p>
+            Swinburne Online TP 2 2024, Data Visualisation COS30045
+        </p>
+    </footer>
+
 </body>
 </html>
