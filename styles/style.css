@@ -175,14 +175,12 @@ footer a:hover {
 }
 
 #lineChartWindow {
-  display: none; /* Ensure it's hidden initially */
-  position: fixed;
-  top: 50%;
-  left: 40%;
-  transform: translate(-50%, -50%);
-  background-color: white;
+  display: none; /* Initially hidden */
+  position: absolute; /* Overlay */
+  top: 50px; /* Adjust positioning */
+  left: 50px; /* Adjust positioning */
+  z-index: 10; /* Higher z-index */
   border: 1px solid black;
+  background-color: white;
   padding: 10px;
-  border-radius: 5px;
-  z-index: 1000; /* Ensure it's above other elements */
 }

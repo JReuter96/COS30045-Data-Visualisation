@@ -57,7 +57,13 @@
 	</div>
 
 	<!-- Container for bar chart -->
-	<div id="bar"></div>
+	<div id="chartContainer" style="position: relative;">
+		<div id="bar"></div>
+		<!-- Div for the line chart overlay -->
+		<div id="lineChartWindow" style="display: none; position: absolute; top: 0; left: 50%; transform: translateX(-50%);">
+			<!-- Line chart content goes here -->
+		</div>
+	</div>
 
 	<!-- Div for the heatmap explanation -->
 	<section id="heatmap-explanation">
@@ -85,9 +91,6 @@
 			alone.</p>
 	</section>
 
-	<div id="lineChartWindow" style="display: none;"> <!-- Ensure this is in your HTML -->
-		<!-- Line chart content goes here -->
-	</div>
 	<!-- Div to host tooltip bars -->
 	<div id="tooltip"
 		style="position: absolute; opacity: 0; background-color: lightgrey; padding: 5px; border-radius: 3px; pointer-events: none;">
