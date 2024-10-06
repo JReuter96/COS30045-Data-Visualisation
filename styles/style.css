@@ -173,3 +173,16 @@ footer a {
 footer a:hover {
     text-decoration: underline;
 }
+
+#lineChartWindow {
+  display: none; /* Ensure it's hidden initially */
+  position: fixed;
+  top: 50%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 1px solid black;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 1000; /* Ensure it's above other elements */
+}

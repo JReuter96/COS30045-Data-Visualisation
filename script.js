@@ -110,6 +110,9 @@ d3.csv("data/datacleaned.csv").then(function (data) {
       })
       .on("mousemove", handleMouseMove)
       .on("mouseout", handleMouseOut)
+      .on("click", function (event, d) {
+        showLineChartWindow(d.Country); // Show the line chart on click
+      })
       .merge(bars) // Update existing bars
       .transition().duration(1000)
       .attr("x", d => x(d.Country))
@@ -217,8 +220,6 @@ function updateHeatmap(year) {
     });
 }
 
-
-
 // Helper function to standardize country names
 function standardizeCountryName(name) {
   const nameMappings = {
@@ -229,66 +230,44 @@ function standardizeCountryName(name) {
     "Turkey": "Türkiye", 
     "TÃ¼rkiye": "Türkiye", 
   };
-  return nameMappings[name] || name; // Return mapped name or original if no match
+  return nameMappings[name] || name;
 }
 
-
-// Load GeoJSON data and CSV data for the heatmap
-Promise.all([
-  d3.json("data/world.geojson"),
-  d3.csv("data/datacleaned.csv")
-]).then(([geoData, trafficData]) => {
-  // Store the traffic data for use in updateHeatmap
-  heatmapData = trafficData;
-
-  // Process CSV data into a usable format
-  trafficData.forEach(d => {
-    d.InjuriesPerMillion = +d.InjuriesPerMillion; // Convert to number
-    d.Year = +d.Year; // Ensure Year is parsed as a number
-    if (!dataMap.has(d.Country)) {
-      dataMap.set(d.Country, []);
-    }
-    dataMap.get(d.Country).push({ year: d.Year, injuries: d.InjuriesPerMillion });
-  });
-
-  // Draw the map using the GeoJSON data
-  mapSvg.selectAll("path")
-    .data(geoData.features)
-    .enter().append("path")
-    .attr("class", "country")
-    .attr("d", path)
-    .style("fill", "#ccc") // Default color for countries without data
-    // Attach mouseover events to paths here
-    .on("mouseover", function (event, d) {
-      const standardizedCountryName = standardizeCountryName(d.properties.name);
-      const countryData = dataMap.get(standardizedCountryName);
-      const yearData = countryData ? countryData.find(item => item.year === currentYear) : null;
-      const injuries = yearData ? yearData.injuries : "No data";
-      const content = `${d.properties.name}: ${injuries} Injuries Per Million`;
-      handleMouseOver(event, content);
-    })
-    .on("mousemove", handleMouseMove)
-    .on("mouseout", handleMouseOut);
-
-  // Initialize the heatmap with the first year's data
-  updateHeatmap(2000);
-});
-
-// Define the function to update the heatmap
-function updateHeatmap(year) {
-  // Update color domain based on the selected year
-  colorScale.domain([0, d3.max(heatmapData, d => d.Year === year ? d.InjuriesPerMillion : 0)]);
-
-  // Update fill color based on the selected year's data
-  mapSvg.selectAll("path")
-    .transition().duration(1000)
-    .style("fill", d => {
-      const standardizedCountryName = standardizeCountryName(d.properties.name);
-      const countryData = dataMap.get(standardizedCountryName);
-      if (countryData) {
-        const yearData = countryData.find(item => item.year === year);
-        return yearData ? colorScale(yearData.injuries) : "#ccc";
+// Load the heatmap GeoJSON data and populate the heatmap
+d3.json("data/world.geojson").then(function (worldData) {
+  // Load the heatmap data and structure it for use
+  d3.csv("data/datacleaned.csv").then(function (data) {
+    // Structure the data for easy access by country and year
+    data.forEach(d => {
+      const country = standardizeCountryName(d.Country);
+      if (!dataMap.has(country)) {
+        dataMap.set(country, []);
       }
-      return "#ccc";
+      dataMap.get(country).push({ year: +d.Year, injuries: +d.InjuriesPerMillion });
     });
-}
+
+    // Draw the map features
+    mapSvg.selectAll("path")
+      .data(worldData.features)
+      .enter()
+      .append("path")
+      .attr("d", path)
+      .attr("fill", "#ccc") // Default fill color
+      .attr("stroke", "#000")
+      .attr("stroke-width", 0.5)
+      .on("mouseover", function (event, d) {
+        const country = standardizeCountryName(d.properties.name);
+        const countryData = dataMap.get(country);
+        if (countryData) {
+          const latestData = countryData[countryData.length - 1];
+          const content = `${country}: ${latestData.injuries} Injuries Per Million`;
+          handleMouseOver(event, content);
+        }
+      })
+      .on("mousemove", handleMouseMove)
+      .on("mouseout", handleMouseOut);
+
+    // Initialize the heatmap for the year 2000
+    updateHeatmap(2000);
+  });
+});
